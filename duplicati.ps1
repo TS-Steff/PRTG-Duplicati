@@ -156,7 +156,7 @@ for($i=0; $i -lt $backup_info.Count; $i++){
         #write-host $LastFinishedDate -f green
 
         $now = (Get-Date).toString("yyyy-MM-dd HH:mm:ss")
-        $now = "2018-05-01 18:12:00"
+        #$now = "2018-05-01 18:12:00"
 
         $diffSinceLastRun = New-TimeSpan -Start $LastFinishedDate -End $now
 
