@@ -177,8 +177,8 @@ for($i=0; $i -lt $backup_info.Count; $i++){
         if($backup_info[$i].data.schedule.repeat -eq "1W"){
             #write-host "repeat weekly" -f red
             write-host "<CustomUnit>h</CustomUnit>"
-            Write-host "<LimitMinWarning>7</LimitMinWarning>"
-            Write-host "<LimitMinError>8</LimitMinError>"
+            Write-host "<LimitMaxWarning>7</LimitMaxWarning>"
+            Write-host "<LimitMaxError>8</LimitMaxError>"
         }
 
         write-host "<value>$diffSinceLastRun</value>"
