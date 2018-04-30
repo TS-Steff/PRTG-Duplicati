@@ -101,7 +101,7 @@ function get_backup_info($backup_ids){
     foreach ($backupID in $backup_ids){
         #write-host "ID: " $backupID
         $backupJson = Invoke-RestMethod -Uri $urlBackup$backupID -Method GET -Headers $Headers -ContentType application/json
-        # write-host $backupJson -f Gray
+        #write-host $backupJson -f Gray
 
         #remove unnecessary chars
         $backupJson =  $backupJson.Substring(3)
@@ -129,6 +129,8 @@ write-host "<prtg>"
 
 
 for($i=0; $i -lt $backup_info.Count; $i++){
+
+    ### Last Backup State
     write-host "<result>"
         $bkupID      = $backup_info[$i].data.backup.id
         $bkupName    = $backup_info[$i].data.backup.name
@@ -143,30 +145,87 @@ for($i=0; $i -lt $backup_info.Count; $i++){
         write-host "<LimitMode>1</LimitMode>"
     write-host "</result>"
 
+
+
+    ### Diff since last run 
+    $LastStart = $backup_info[$i].data.backup.metadata.LastStarted
+    if($backup_info[$i].data.backup.metadata.LastFinished){
+        $LastFinished = $backup_info[$i].data.backup.metadata.LastFinished
+        $LastFinishedDate = [datetime]::ParseExact($LastFinished,"yyyyMMddTHHmmssZ",$null)
+        $LastFinishedDate = Get-Date $LastFinishedDate -Format "yyyy-MM-dd HH:mm:ss"
+        #write-host $LastFinishedDate -f green
+
+        $now = (Get-Date).toString("yyyy-MM-dd HH:mm:ss")
+        $now = "2018-05-01 18:12:00"
+
+        $diffSinceLastRun = New-TimeSpan -Start $LastFinishedDate -End $now
+
+        if($backup_info[$i].data.schedule.repeat -eq "1W"){
+            $diffSinceLastRun = $diffSinceLastRun.Days
+        }
+    }else{
+        #write-host "never completed" -f Red
+        $diffSinceLastRun = -1
+    }
+
+    # PRTG Output diff since last run
     write-host "<result>"
         write-host "<channel>$bkupID - $bkupName - LastRun</channel>"
+        write-host "<unit>Custom</unit>"
+
+        ## if repeat 1W
+        if($backup_info[$i].data.schedule.repeat -eq "1W"){
+            #write-host "repeat weekly" -f red
+            write-host "<CustomUnit>h</CustomUnit>"
+            Write-host "<LimitMinWarning>7</LimitMinWarning>"
+            Write-host "<LimitMinError>8</LimitMinError>"
+        }
+
+        write-host "<value>$diffSinceLastRun</value>"
+        write-host "<showChart>1</showChart>"
+        write-host "<showTable>1</showTable>"
+        Write-Host "<LimitWarningMsg>Backup overdue</LimitWarningMsg>"
+        Write-Host "<LimitErrorMsg>Backup overdue</LimitErrorMsg>"
+        Write-Host "<LimitMode>1</LimitMode>"
     write-host "</result>"
 
-    write-host " " 
+
+
+    ### Last duration
+    if($backup_info[$i].data.backup.metadata.LastDuration){
+        $LastDuration = Get-Date $backup_info[$i].data.backup.metadata.LastDuration -Format "HH:mm:ss"
+        #$LastDuration = [datetime]::ParseExact($LastDuration,"HH:mm:ss.fff",$null)
+        #$LastDuration = Get-Date $LastFinishedDate -Format "HH:mm:ss"
+    
+        #write-host "LastDuration: " $LastDuration -f green
+    }else{
+        #write-host "not yet started" -f red
+        $LastDuration = -1
+    }
+
+    write-host "<result>"
+        write-host "<channel>$bkupID - $bkupName - LastDuration</channel>"
+        write-host "<unit>TimeHours</unit>"
+        write-host "<value>$LastDuration</value>"
+    write-host "</result>"
+
 
         #write-host "Name:" $backup_info[$i].data.backup.name
         #write-host "ID:" $backup_info[$i].data.backup.id
         #write-host "success:" $backup_info[$i].success
-        $LastStart = $backup_info[$i].data.backup.metadata.LastStarted
-
         
-        
-        $now = (Get-Date).toString("yyyyMMddTHHmmsssZ")
-        write-host $now -f red
-        write-host "LastStart:" $backup_info[$i].data.backup.metadata.LastStarted
-        write-host "LastFinished:" $backup_info[$i].data.backup.metadata.LastFinished
-        write-host "LastDuration:" $backup_info[$i].data.backup.metadata.LastDuration
+        #write-host "LastStart:" $backup_info[$i].data.backup.metadata.LastStarted
+        #write-host "LastFinished:" $backup_info[$i].data.backup.metadata.LastFinished
+        #Write-host "Repeat:" $backup_info[$i].data.schedule.repeat
+        #write-host "LastDuration:" $backup_info[$i].data.backup.metadata.LastDuration
+<#
         write-host "SourceFilesSize (Byte):" $backup_info[$i].data.backup.metadata.SourceFilesSize
         $backupSourceFilesSize = $backup_info[$i].data.backup.metadata.SourceFilesSize
         $backupSourceFilesSize = [math]::round($backupSourceFilesSize / [math]::pow(1024,3),2)
         write-host "SourceFilesSize (GB):" $backupSourceFilesSize
 
     write-host "------" -f green
+#>
 }
 write-host "</prtg>"
 
