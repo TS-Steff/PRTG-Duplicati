@@ -101,7 +101,7 @@ function get_backup_info($backup_ids){
     foreach ($backupID in $backup_ids){
         #write-host "ID: " $backupID
         $backupJson = Invoke-RestMethod -Uri $urlBackup$backupID -Method GET -Headers $Headers -ContentType application/json
-        #write-host $backupJson -f Gray
+        # write-host $backupJson -f Gray
 
         #remove unnecessary chars
         $backupJson =  $backupJson.Substring(3)
@@ -123,21 +123,53 @@ $backup_info = get_backup_info(get_backups)
 
 #write-host "Count:" $backup_info.Count
 
+
+### Creating PRTG Output
+write-host "<prtg>"
+
+
 for($i=0; $i -lt $backup_info.Count; $i++){
-    write-host "Name:" $backup_info[$i].data.backup.name
-    write-host "ID:" $backup_info[$i].data.backup.id
-    write-host "success:" $backup_info[$i].success
-    write-host "LastStart:" $backup_info[$i].data.backup.metadata.LastStarted
-    write-host "LastFinished:" $backup_info[$i].data.backup.metadata.LastFinished
-    write-host "LastDuration:" $backup_info[$i].data.backup.metadata.LastDuration
-    write-host "SourceFilesSize (Byte):" $backup_info[$i].data.backup.metadata.SourceFilesSize
-    $backupSourceFilesSize = $backup_info[$i].data.backup.metadata.SourceFilesSize
-    $backupSourceFilesSize = [math]::round($backupSourceFilesSize / [math]::pow(1024,3),2)
-    write-host "SourceFilesSize (GB):" $backupSourceFilesSize
+    write-host "<result>"
+        $bkupID      = $backup_info[$i].data.backup.id
+        $bkupName    = $backup_info[$i].data.backup.name
+        $bkupSuccess = $backup_info[$i].success
 
+        write-host "<channel>$bkupID - $bkupName - Success</channel>"
+        write-host "<unit></unit>"
+        write-host "<value>$bkupSuccess</value>"
+        write-host "<showChart>1</showChart>"
+        write-host "<showTable>1</showTable>"
+        Write-host "<LimitMinError>0</LimitMinError>"
+        write-host "<LimitMode>1</LimitMode>"
+    write-host "</result>"
 
-    write-host ""
+    write-host "<result>"
+        write-host "<channel>$bkupID - $bkupName - LastRun</channel>"
+    write-host "</result>"
+
+    write-host " " 
+
+        #write-host "Name:" $backup_info[$i].data.backup.name
+        #write-host "ID:" $backup_info[$i].data.backup.id
+        #write-host "success:" $backup_info[$i].success
+        $LastStart = $backup_info[$i].data.backup.metadata.LastStarted
+
+        
+        
+        $now = (Get-Date).toString("yyyyMMddTHHmmsssZ")
+        write-host $now -f red
+        write-host "LastStart:" $backup_info[$i].data.backup.metadata.LastStarted
+        write-host "LastFinished:" $backup_info[$i].data.backup.metadata.LastFinished
+        write-host "LastDuration:" $backup_info[$i].data.backup.metadata.LastDuration
+        write-host "SourceFilesSize (Byte):" $backup_info[$i].data.backup.metadata.SourceFilesSize
+        $backupSourceFilesSize = $backup_info[$i].data.backup.metadata.SourceFilesSize
+        $backupSourceFilesSize = [math]::round($backupSourceFilesSize / [math]::pow(1024,3),2)
+        write-host "SourceFilesSize (GB):" $backupSourceFilesSize
+
+    write-host "------" -f green
 }
+write-host "</prtg>"
+
 
 #$backup_ids = get_backups
 
