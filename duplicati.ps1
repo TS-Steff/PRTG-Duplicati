@@ -21,7 +21,7 @@ $headers = @{
 "Upgrade-Insecure-Requests"="1";
 }
 
-Invoke-WebRequest -Uri $url -Method GET -Headers $headers -SessionVariable SFSession | Out-Null
+Invoke-WebRequest -Uri $url -Method GET -Headers $headers -SessionVariable SFSession -UseBasicParsing | Out-Null
 
 
 #Gets required tokens
