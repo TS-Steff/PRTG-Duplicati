@@ -1,4 +1,9 @@
-﻿cls
+﻿#cls
+
+
+### TODO
+# - Server address as parameter
+# - a whole lot more :D
 
 ### Duplicati Server URL
 $url ="http://10.4.4.21:8200/index.html"
@@ -124,26 +129,30 @@ $backup_info = get_backup_info(get_backups)
 #write-host "Count:" $backup_info.Count
 
 
-### Creating PRTG Output
+
+############################
+### Creating PRTG Output ###
+############################
+write-host '<?xml version="1.0" encoding="Windows-1252" ?>'
 write-host "<prtg>"
 
 
 for($i=0; $i -lt $backup_info.Count; $i++){
+    $bkupID      = $backup_info[$i].data.backup.id
+    $bkupName    = $backup_info[$i].data.backup.name
+
 
     ### Last Backup State
-    write-host "<result>"
-        $bkupID      = $backup_info[$i].data.backup.id
-        $bkupName    = $backup_info[$i].data.backup.name
+    write-host "`t<result>"
         $bkupSuccess = $backup_info[$i].success
-
-        write-host "<channel>$bkupID - $bkupName - Success</channel>"
-        write-host "<unit></unit>"
-        write-host "<value>$bkupSuccess</value>"
-        write-host "<showChart>1</showChart>"
-        write-host "<showTable>1</showTable>"
-        Write-host "<LimitMinError>0</LimitMinError>"
-        write-host "<LimitMode>1</LimitMode>"
-    write-host "</result>"
+        write-host "`t`t<channel>$bkupID - $bkupName - Success</channel>"
+        write-host "`t`t<unit></unit>"
+        write-host "`t`t<value>$bkupSuccess</value>"
+        write-host "`t`t<showChart>1</showChart>"
+        write-host "`t`t<showTable>1</showTable>"
+        Write-host "`t`t<LimitMinError>0</LimitMinError>"
+        write-host "`t`t<LimitMode>1</LimitMode>"
+    write-host "`t</result>"
 
 
 
@@ -169,25 +178,25 @@ for($i=0; $i -lt $backup_info.Count; $i++){
     }
 
     # PRTG Output diff since last run
-    write-host "<result>"
-        write-host "<channel>$bkupID - $bkupName - LastRun</channel>"
-        write-host "<unit>Custom</unit>"
+    write-host "`t<result>"
+        write-host "`t`t<channel>$bkupID - $bkupName - LastRun</channel>"
+        write-host "`t`t<unit>Custom</unit>"
 
         ## if repeat 1W
         if($backup_info[$i].data.schedule.repeat -eq "1W"){
             #write-host "repeat weekly" -f red
-            write-host "<CustomUnit>h</CustomUnit>"
-            Write-host "<LimitMinWarning>7</LimitMinWarning>"
-            Write-host "<LimitMinError>8</LimitMinError>"
+            write-host "`t`t<CustomUnit>h</CustomUnit>"
+            Write-host "`t`t<LimitMinWarning>7</LimitMinWarning>"
+            Write-host "`t`t<LimitMinError>8</LimitMinError>"
         }
 
-        write-host "<value>$diffSinceLastRun</value>"
-        write-host "<showChart>1</showChart>"
-        write-host "<showTable>1</showTable>"
-        Write-Host "<LimitWarningMsg>Backup overdue</LimitWarningMsg>"
-        Write-Host "<LimitErrorMsg>Backup overdue</LimitErrorMsg>"
-        Write-Host "<LimitMode>1</LimitMode>"
-    write-host "</result>"
+        write-host "`t`t<value>$diffSinceLastRun</value>"
+        write-host "`t`t<showChart>1</showChart>"
+        write-host "`t`t<showTable>1</showTable>"
+        Write-Host "`t`t<LimitWarningMsg>Backup overdue</LimitWarningMsg>"
+        Write-Host "`t`t<LimitErrorMsg>Backup overdue</LimitErrorMsg>"
+        Write-Host "`t`t<LimitMode>1</LimitMode>"
+    write-host "`t</result>"
 
 
 
@@ -203,11 +212,11 @@ for($i=0; $i -lt $backup_info.Count; $i++){
         $LastDuration = -1
     }
 
-    write-host "<result>"
-        write-host "<channel>$bkupID - $bkupName - LastDuration</channel>"
-        write-host "<unit>TimeHours</unit>"
-        write-host "<value>$LastDuration</value>"
-    write-host "</result>"
+    write-host "`t<result>"
+        write-host "`t`t<channel>$bkupID - $bkupName - LastDuration</channel>"
+        #write-host "`t`t<unit></unit>"
+        write-host "`t`t<value>$LastDuration</value>"
+    write-host "`t</result>"
 
 
         #write-host "Name:" $backup_info[$i].data.backup.name
