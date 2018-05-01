@@ -172,7 +172,7 @@ for($i=0; $i -lt $backup_info.Count; $i++){
         $diffSinceLastRun = New-TimeSpan -Start $LastFinishedDate -End $now
 
         if($backup_info[$i].data.schedule.repeat -eq "1W"){
-            $diffSinceLastRun = $diffSinceLastRun.Days
+            $diffSinceLastRun = $diffSinceLastRun.days
         }
     }else{
         #write-host "never completed" -f Red
@@ -187,7 +187,7 @@ for($i=0; $i -lt $backup_info.Count; $i++){
         ## if repeat 1W
         if($backup_info[$i].data.schedule.repeat -eq "1W"){
             #write-host "repeat weekly" -f red
-            write-host "`t`t<CustomUnit>h</CustomUnit>"
+            write-host "`t`t<CustomUnit>d</CustomUnit>"
             Write-host "`t`t<LimitMaxWarning>7</LimitMaxWarning>"
             Write-host "`t`t<LimitMaxError>8</LimitMaxError>"
         }
@@ -202,22 +202,35 @@ for($i=0; $i -lt $backup_info.Count; $i++){
 
 
 
-    ### Last duration
-    if($backup_info[$i].data.backup.metadata.LastDuration){
-        $LastDuration = Get-Date $backup_info[$i].data.backup.metadata.LastDuration -Format "HH:mm:ss"
-        #$LastDuration = [datetime]::ParseExact($LastDuration,"HH:mm:ss.fff",$null)
-        #$LastDuration = Get-Date $LastFinishedDate -Format "HH:mm:ss"
-    
-        #write-host "LastDuration: " $LastDuration -f green
-    }else{
-        #write-host "not yet started" -f red
-        $LastDuration = -1
-    }
+
 
     write-host "`t<result>"
         write-host "`t`t<channel>$bkupID - $bkupName - LastDuration</channel>"
         write-host "`t`t<unit>Custom</unit>"
-        write-host "`t`t<value>$LastDuration</value>"
+        write-host "`t`t<CustomUnit>min</CustomUnit>"
+
+    ### Last duration
+    if($backup_info[$i].data.backup.metadata.LastDuration){
+        #$LastDuration = Get-Date $backup_info[$i].data.backup.metadata.LastDuration -Format "HH:mm:ss"
+        $LastDurationHours = Get-Date $backup_info[$i].data.backup.metadata.LastDuration -Format "HH"
+        $LastDurationMinutes = Get-Date $backup_info[$i].data.backup.metadata.LastDuration -Format "mm"
+        
+        if($LastDurationHours -eq "00"){
+            write-host "`t`t<value>$LastDurationMinutes</value>"
+        }else{
+            $LastDuration = $LastDurationHours * 60 + $LastDurationMinutes
+            write-host "`t`t<value>$LastDuration</value>"
+        }
+
+    }else{
+        #write-host "not yet started" -f red
+        write-host "`t`t<value>-1</value>"
+    }
+
+
+        
+        write-host "`t`t<float>0</float>"
+
     write-host "`t</result>"
 
 
