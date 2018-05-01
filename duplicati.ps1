@@ -26,7 +26,6 @@ $headers = @{
 "Upgrade-Insecure-Requests"="1";
 }
 
-Invoke-WebRequest -Uri $url -Method GET -Headers $headers -SessionVariable SFSession | Out-Null
 
 
 #Gets required tokens
@@ -185,9 +184,15 @@ for($i=0; $i -lt $backup_info.Count; $i++){
         ## if repeat 1W
         if($backup_info[$i].data.schedule.repeat -eq "1W"){
             #write-host "repeat weekly" -f red
+<<<<<<< HEAD
             write-host "`t`t<CustomUnit>h</CustomUnit>"
             Write-host "`t`t<LimitMinWarning>7</LimitMinWarning>"
             Write-host "`t`t<LimitMinError>8</LimitMinError>"
+=======
+            write-host "<CustomUnit>h</CustomUnit>"
+            Write-host "<LimitMaxWarning>7</LimitMaxWarning>"
+            Write-host "<LimitMaxError>8</LimitMaxError>"
+>>>>>>> f3bd3cfcdd581ed990370e473bfd5c6640fd4eb2
         }
 
         write-host "`t`t<value>$diffSinceLastRun</value>"
