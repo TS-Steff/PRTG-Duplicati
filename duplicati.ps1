@@ -1,8 +1,9 @@
-﻿#cls
+﻿cls
 
 
 ### TODO
 # - Server address as parameter
+# - get current backup state (paused, running, stopped)
 # - a whole lot more :D
 
 ### Duplicati Server URL
@@ -38,7 +39,7 @@ $headers = @{
 "Referer"=$url;
 }
 
-Invoke-WebRequest -Uri ($url) -Method POST -Headers $headers -WebSession $sfsession|Out-Null
+Invoke-WebRequest -Uri ($url) -Method POST -Headers $headers -WebSession $sfsession -UseBasicParsing | Out-Null
 
 
 $xsrf = $sfsession.cookies.GetCookies($url)|where{$_.name -like "xsrf-token"}
@@ -147,6 +148,7 @@ for($i=0; $i -lt $backup_info.Count; $i++){
         $bkupSuccess = $backup_info[$i].success
         write-host "`t`t<channel>$bkupID - $bkupName - Success</channel>"
         write-host "`t`t<unit></unit>"
+        if($bkupSuccess -eq "True"){$bkupSuccess = 1}elseif($bkupSuccess -eq "False"){$bkupSuccess = 0}else{$bkupSuccess = -1}
         write-host "`t`t<value>$bkupSuccess</value>"
         write-host "`t`t<showChart>1</showChart>"
         write-host "`t`t<showTable>1</showTable>"
@@ -185,15 +187,9 @@ for($i=0; $i -lt $backup_info.Count; $i++){
         ## if repeat 1W
         if($backup_info[$i].data.schedule.repeat -eq "1W"){
             #write-host "repeat weekly" -f red
-<<<<<<< HEAD
             write-host "`t`t<CustomUnit>h</CustomUnit>"
-            Write-host "`t`t<LimitMinWarning>7</LimitMinWarning>"
-            Write-host "`t`t<LimitMinError>8</LimitMinError>"
-=======
-            write-host "<CustomUnit>h</CustomUnit>"
-            Write-host "<LimitMaxWarning>7</LimitMaxWarning>"
-            Write-host "<LimitMaxError>8</LimitMaxError>"
->>>>>>> f3bd3cfcdd581ed990370e473bfd5c6640fd4eb2
+            Write-host "`t`t<LimitMaxWarning>7</LimitMaxWarning>"
+            Write-host "`t`t<LimitMaxError>8</LimitMaxError>"
         }
 
         write-host "`t`t<value>$diffSinceLastRun</value>"
@@ -220,7 +216,7 @@ for($i=0; $i -lt $backup_info.Count; $i++){
 
     write-host "`t<result>"
         write-host "`t`t<channel>$bkupID - $bkupName - LastDuration</channel>"
-        #write-host "`t`t<unit></unit>"
+        write-host "`t`t<unit>Custom</unit>"
         write-host "`t`t<value>$LastDuration</value>"
     write-host "`t</result>"
 
