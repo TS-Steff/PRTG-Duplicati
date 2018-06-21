@@ -56,16 +56,29 @@ function get_backups{
     
     $backups = Invoke-RestMethod -Uri $urlBackups -Method GET -Headers $Headers -ContentType application/json
 
+    #write-host $backups -f White
+    
+    #remove any linebreaks
+    $backups = $backups -replace "`t|`n|`r",""
+
+    #write-host $backups -f Yellow
+
     #remove unnecessary chars
     $backups =  $backups.Substring(6)
     $backups = $backups.Substring(0,$backups.Length -2  )
 
+    #write-host $backups -f green
+    
     #split into json objects
-    $arrBackups = $backups -split '},
-  {'
+#    $arrBackups = $backups -split '},
+#  {'
+    $arrBackups = $backups -split '},  {'
 
+#    write-host $arrBackups.Length -f White
+#    write-host $arrBackups[0] -f green
 
     #fixing the json objects
+
     for ($i=0; $i -lt $arrBackups.Length; $i++){
    
         if($i -eq 0){
@@ -73,20 +86,20 @@ function get_backups{
             #write-host "fixing first"
             $arrBackups[0] = $arrBackups[0] + "}"
 
-        }elseif($i -eq $arrBackups.Length - 1){
-            # fixing last json object
-            #write-host "fixing last"
-            $arrBackups[$i] = "{" + $arrBackups[$i]
+#        }elseif($i -eq $arrBackups.Length - 1){
+#            # fixing last json object
+#            #write-host "fixing last"
+#            $arrBackups[$i] = "{" + $arrBackups[$i]
 
         }else{
-            # fixing middle json objects
+            # fixing other json objects
             #write-host "fixing others"
             $arrBackups[$i] = "{" + $arrBackups[$i] + "}"
             #write-host $arrBackups[$i] -f Green
         }  
     }
 
-    #write-host $arrBackups -f Yellow
+#    write-host $arrBackups -f gray
 
     $j=0;
     foreach ($backup in $arrBackups){
@@ -95,30 +108,30 @@ function get_backups{
         $backup_ids += @($json.Backup.ID) 
         $j++
 
-    }
-
-
+    
 
     return $backup_ids
 }
 
 
 function get_backup_info($backup_ids){
+    $backup_info = @(New-Object System.Collections.ArrayList)
     foreach ($backupID in $backup_ids){
         #write-host "ID: " $backupID
         $backupJson = Invoke-RestMethod -Uri $urlBackup$backupID -Method GET -Headers $Headers -ContentType application/json
         #write-host $backupJson -f Gray
-
+        
         #remove unnecessary chars
         $backupJson =  $backupJson.Substring(3)
         $backupJson = ConvertFrom-Json $backupJson
+        
 
         $backup_info += @($backupJson)
 
         
-        #write-host "success: " $backupJson.success
-        #write-host "ID: " $backupJson.data.Backup.ID
-        #write-host "--------------" -f Green
+#        write-host "success: " $backupJson.success
+#        write-host "ID: " $backupJson.data.Backup.ID
+#        write-host "--------------" -f Green
 
     }
 
@@ -127,6 +140,9 @@ function get_backup_info($backup_ids){
 
 $backup_info = get_backup_info(get_backups)
 
+
+
+#write-host "Count:" $backup_info
 #write-host "Count:" $backup_info.Count
 
 
@@ -138,9 +154,10 @@ write-host '<?xml version="1.0" encoding="Windows-1252" ?>'
 write-host "<prtg>"
 
 
-for($i=0; $i -lt $backup_info.Count; $i++){
+for($i=1; $i -lt $backup_info.Count; $i++){
     $bkupID      = $backup_info[$i].data.backup.id
     $bkupName    = $backup_info[$i].data.backup.name
+
 
 
     ### Last Backup State
@@ -183,6 +200,15 @@ for($i=0; $i -lt $backup_info.Count; $i++){
     write-host "`t<result>"
         write-host "`t`t<channel>$bkupID - $bkupName - LastRun</channel>"
         write-host "`t`t<unit>Custom</unit>"
+
+        ## if repeat Daliy = 1D
+        #write-host $backup_info[$i].data.schedule.repeat -f Red
+        if($backup_info[$i].data.schedule.repeat -eq "1D"){
+            #write-host "repeat daily" -f red
+            write-host "`t`t<CustomUnit>d</CustomUnit>"
+            Write-host "`t`t<LimitMaxWarning>1</LimitMaxWarning>"
+            Write-host "`t`t<LimitMaxError>2</LimitMaxError>"
+        }
 
         ## if repeat 1W
         if($backup_info[$i].data.schedule.repeat -eq "1W"){
