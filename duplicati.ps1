@@ -99,6 +99,7 @@ function get_backups{
         }  
     }
 
+
 #    write-host $arrBackups -f gray
 
     $j=0;
@@ -107,7 +108,7 @@ function get_backups{
         #$json.Backup.ID
         $backup_ids += @($json.Backup.ID) 
         $j++
-
+    }
     
 
     return $backup_ids
@@ -150,7 +151,7 @@ $backup_info = get_backup_info(get_backups)
 ############################
 ### Creating PRTG Output ###
 ############################
-write-host '<?xml version="1.0" encoding="Windows-1252" ?>'
+write-host '<?xml version="1.0" encoding="UTF-8" ?>'
 write-host "<prtg>"
 
 
